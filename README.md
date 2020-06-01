@@ -60,7 +60,14 @@ bool seedInsideOlive = !(DEBUGXRAY::DEBUGCLASS::IsOlivePitted(olive));
 [classdecl_modifier.cpp: expects one inputfile, one outputfile, analyzes inputfile, searches for class definitions and extends them -- needs libclang for parsing C++ source; debugxray.h: skeleton definition file for DEBUGXRAY::DEBUGCLASS]
 
 ## INTO
-[coming soon] INTO consists of a) a set of standard integer type wrappers with overloaded arithmetic operators that take care of signed and unsigned integer overflows, and b) typedefs optionally referring to them or the original built-in ones like this:
+INTO is a lightweight header-only library that defines a set of standard integer type wrappers with overloaded arithmetic operators that take care of signed and unsigned integer overflows. It also provides typedefs to be able to switch back and forth between overflow checked and built-in versions. 
+It got it's name after the original 8086/8088 assembly instruction INTO (opcode 0xCE) that calls interrupt 4 if overflow bit is set in [E]FLAGS. 
+Simple usage example:
+```c++
+unsignedo x = 32767;						// or overflowchecked<unsigned> x, if __DEBUG_CHECK_INTEGER_OVERFLOW_ALIAS is OFF
+x += 1;										// this throws std::overflow_error depending on whether __DEBUG_CHECK_INTEGER_OVERFLOW is ON or OFF
+```
+Typedef aliases look something like this:
 ```c++
 #ifdef __DEBUG_CHECK_INTEGER_OVERFLOW
 typedef overflowchecked<unsigned> unsignedo;
@@ -68,19 +75,8 @@ typedef overflowchecked<unsigned> unsignedo;
 typedef unsigned unsignedo;
 #endif
 ```
-while the classes with overloaded operators look something like this (simplified template syntax code):
+It also checks for variable initialization and that's how it can trap overflows concerning non-operator cases, like calling pow() or other cmath functions:
 ```c++
-class overflowchecked<unsigned> {
-private:
-	unsigned _wrapped;
-public:
-	// ctors and conversion operators
-	friend overflowchecked<unsigned> operator+(overflowchecked<unsigned> lhs, overflowchecked<unsigned> rhs) {
-		if (std::numeric_limits<unsigned>::max() - lhs._wrapped < rhs._wrapped)
-			throw std::overflow_error("unsigned integer overflow");
-    return overflowchecked<unsigned>(lhs._wrapped + rhs._wrapped);
-    }
-};
+into i = 32768;								// this alone would cause std::overflow_error if it was shorto, rather then into
+into result = pow(i,3);						// pow(32768,3) == 35184372088832 > 2147483648, this will be and std::overflow_error
 ```
-
-It is named after original 8086/8088 assembly instruction INTO (opcode 0xCE) which calls interrupt 4 if it finds overflow bit is set in FLAGS register.
