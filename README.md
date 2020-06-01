@@ -62,10 +62,11 @@ bool seedInsideOlive = !(DEBUGXRAY::DEBUGCLASS::IsOlivePitted(olive));
 ## INTO
 INTO is a lightweight header-only library that defines a set of standard integer type wrappers with overloaded arithmetic operators that take care of signed and unsigned integer overflows. It also provides typedefs to be able to switch back and forth between overflow checked and built-in versions. 
 It got it's name after the original 8086/8088 assembly instruction INTO (opcode 0xCE) that calls interrupt 4 if overflow bit is set in [E]FLAGS. 
+
 Simple usage example:
 ```c++
-unsignedo x = 32767;						// or overflowchecked<unsigned> x, if __DEBUG_CHECK_INTEGER_OVERFLOW_ALIAS is OFF
-x += 1;										// this throws std::overflow_error depending on whether __DEBUG_CHECK_INTEGER_OVERFLOW is ON or OFF
+unsignedo x = 32767;				// or overflowchecked<unsigned> x, if __DEBUG_CHECK_INTEGER_OVERFLOW_ALIAS is OFF
+x += 1;						// this throws std::overflow_error depending on whether __DEBUG_CHECK_INTEGER_OVERFLOW is ON or OFF
 ```
 Typedef aliases look something like this:
 ```c++
@@ -77,6 +78,6 @@ typedef unsigned unsignedo;
 ```
 It also checks for variable initialization and that's how it can trap overflows concerning non-operator cases, like calling pow() or other cmath functions:
 ```c++
-into i = 32768;								// this alone would cause std::overflow_error if it was shorto, rather then into
-into result = pow(i,3);						// pow(32768,3) == 35184372088832 > 2147483648, this will be and std::overflow_error
+into i = 32768;					// this alone would cause std::overflow_error if it was shorto, rather then into
+into result = pow(i,3);				// pow(32768,3) == 35184372088832 > 2147483648, this will be and std::overflow_error
 ```
