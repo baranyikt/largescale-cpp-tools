@@ -464,18 +464,18 @@ template <typename U, typename V> const overflowchecked<INTO_common_t<U, V>> ope
 
 #ifdef __DEBUG_CHECK_INTEGER_OVERFLOW_ALIAS
 CREATE_TYPE_ALIAS(unsigned);								// this one creates unsignedo
-CREATE_TYPE_ALIAS(signed);									//		...signedo
+CREATE_TYPE_ALIAS(signed);								//		...signedo
 CREATE_TYPE_ALIAS(char);
 CREATE_TYPE_ALIAS(short);
 CREATE_TYPE_ALIAS(int);
-CREATE_TYPE_ALIAS(long);									//		...longo
-CREATE_TYPE_ALIAS_WITHNAME(signed char,			schar);		//		...scharo
-CREATE_TYPE_ALIAS_WITHNAME(unsigned char,		uchar);
+CREATE_TYPE_ALIAS(long);								//		...longo
+CREATE_TYPE_ALIAS_WITHNAME(signed char,			schar);				//		...scharo
+CREATE_TYPE_ALIAS_WITHNAME(unsigned char,		uchar);				//		...ucharo
 CREATE_TYPE_ALIAS_WITHNAME(unsigned short,		ushort);
 CREATE_TYPE_ALIAS_WITHNAME(unsigned int,		uint);
-CREATE_TYPE_ALIAS_WITHNAME(long,				ulong);
+CREATE_TYPE_ALIAS_WITHNAME(long,			ulong);
 CREATE_TYPE_ALIAS_WITHNAME(long long,			llong);
-CREATE_TYPE_ALIAS_WITHNAME(unsigned long long,	ullong);	//		...ullongo
+CREATE_TYPE_ALIAS_WITHNAME(unsigned long long,	ullong);				//		...ullongo
 #endif //__DEBUG_CHECK_INTEGER_OVERFLOW_ALIAS
 
 #undef CREATE_TYPE_ALIAS
