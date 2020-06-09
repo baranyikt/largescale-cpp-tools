@@ -12,7 +12,7 @@
 #define __DEBUG_CHECK_INTEGER_OVERFLOW								// this switch changes unsignedo etc. typedefs back and forth between overflow checked and unchecked versions
 #define __DEBUG_CHECK_INTEGER_OVERFLOW_ALIAS						// unsignedo etc. typedefs can be turned off if not needed
 // #define __DEBUG_CHECK_INTEGER_OVERFLOW_NAMESPACE	ofchecked		// an optional namespace can be defined (not applies to unsignedo etc.)
-#define __DEBUG_CHECK_INTEGER_OVERFLOW_USE_X86_ASM
+#define __DEBUG_CHECK_INTEGER_OVERFLOW_USE_X86_64_ASM
 #include "INTO.h"
 
 

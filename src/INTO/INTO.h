@@ -1,8 +1,7 @@
 #pragma once
 
-//TODO implement __DEBUG_CHECK_INTEGER_OVERFLOW_USE_X86_ASM routines for mixed types
-//TODO integrate __DEBUG_CHECK_INTEGER_OVERFLOW_USE_X86_ASM into operators
-//TODO adapt __DEBUG_CHECK_INTEGER_OVERFLOW_USE_X86_ASM to gcc/clang asm syntax
+//TODO implement __DEBUG_CHECK_INTEGER_OVERFLOW_USE_X86_64_ASM routines for mixed types
+//TODO integrate __DEBUG_CHECK_INTEGER_OVERFLOW_USE_X86_64_ASM into operators
 //TODO make static_assert overflow check work on non-MSVC compilers
 //TODO implement other operators & operator members
 
@@ -84,8 +83,14 @@ public:
 	template <typename U, typename V> friend const overflowchecked<INTO_common_t<U, V>> operator/ (overflowchecked<U> lhs, overflowchecked<V> rhs);
 };
 
-#ifdef __DEBUG_CHECK_INTEGER_OVERFLOW_USE_X86_ASM
-#ifdef __MSC_VER
+#ifdef __DEBUG_CHECK_INTEGER_OVERFLOW_USE_X86_64_ASM
+#ifdef _MSC_VER
+
+#if UINTPTR_MAX == 0xffff'ffff'ffff'ffff    // 64-bit mode, assumably
+#error Can't do __asm on MSVC/x64
+#elif UINTPTR_MAX != 0xffff'ffff			// but not 32-bit mode
+#error Strange ptr size
+#else
 inline bool add_with_oc(uint8_t a, uint8_t b, uint8_t& c)
 {
 	__asm {
@@ -192,7 +197,133 @@ inline bool add_with_oc(int64_t a, int64_t b, int64_t& c)
 		mov al, cl
 	}
 }
-#endif //_MSC_VER
+#endif //UINTPTR_MAX == 0xffff'ffff / 32-bit mode
+#else //!_MSC_VER
+inline bool add_with_oc(uint8_t a, uint8_t b, uint8_t& c)
+{
+	bool retval;
+	__asm__ volatile (
+		"addb %%dl, %%cl    \n"
+		"setc %%al          \n"
+		: "=c" (c), "=a" (retval)
+		: "c" (a), "d" (b)
+		: );
+	return retval;
+}
+inline bool add_with_oc(int8_t a, int8_t b, int8_t& c)
+{
+	bool retval;
+	__asm__ volatile (
+		"addb %%dl, %%cl    \n"
+		"seto %%al          \n"
+		: "=c" (c), "=a" (retval)
+		: "c" (a), "d" (b)
+		: );
+	return retval;
+}
+inline bool add_with_oc(uint16_t a, uint16_t b, uint16_t& c)
+{
+	bool retval;
+	__asm__ volatile (
+		"addw %%dx, %%cx    \n"
+		"setc %%al          \n"
+		: "=c" (c), "=a" (retval)
+		: "c" (a), "d" (b)
+		: );
+	return retval;
+}
+inline bool add_with_oc(int16_t a, int16_t b, int16_t& c)
+{
+	bool retval;
+	__asm__ volatile (
+		"addw %%dx, %%cx    \n"
+		"seto %%al          \n"
+		: "=c" (c), "=a" (retval)
+		: "c" (a), "d" (b)
+		: );
+	return retval;
+}
+inline bool add_with_oc(uint32_t a, uint32_t b, uint32_t& c)
+{
+	bool retval;
+	__asm__ volatile (
+		"addl %%edx, %%ecx  \n"
+		"setc %%al          \n"
+		: "=c" (c), "=a" (retval)
+		: "c" (a), "d" (b)
+		: );
+	return retval;
+}
+inline bool add_with_oc(int32_t a, int32_t b, int32_t& c)
+{
+	bool retval;
+	__asm__ volatile (
+		"addl %%edx, %%ecx  \n"
+		"seto %%al          \n"
+		: "=c" (c), "=a" (retval)
+		: "c" (a), "d" (b)
+		: );
+	return retval;
+}
+inline bool add_with_oc(uint64_t a, uint64_t b, uint64_t& c)
+{
+	bool retval;
+#if UINTPTR_MAX == 0xffff'ffff'ffff'ffff    // 64-bit mode, assumably
+	{
+		__asm__ volatile (
+			"addq %%rdx, %%rcx  \n"
+			"setc %%al          \n"
+			: "=c" (c), "=a" (retval)
+			: "c" (a), "d" (b)
+			: );
+	}
+#elif UINTPTR_MAX == 0xffff'ffff    // 32-bit mode
+	{
+		__asm__ volatile (
+			"addl %%esi, %%eax   \n"
+			"adcl %%edi, %%edx   \n"
+			"setc %%cl           \n"
+			: "=A" (c), "=c" (retval)
+			: "a" ((uint32_t)a), "d" ((uint32_t)(a >> 32)),
+			  "S" ((uint32_t)b), "D" ((uint32_t)(b >> 32))
+			: );
+	}
+#else
+#error Strange ptr size
+#endif
+	return retval;
+}
+
+inline bool add_with_oc(int64_t a, int64_t b, int64_t& c)
+{
+	bool retval;
+#if UINTPTR_MAX == 0xffff'ffff'ffff'ffff    // 64-bit mode, assumably
+	{
+		__asm__ volatile (
+			"addq %%rdx, %%rcx  \n"
+			"seto %%al          \n"
+			: "=c" (c), "=a" (retval)
+			: "c" (a), "d" (b)
+			: );
+	}
+#elif UINTPTR_MAX == 0xffff'ffff    // 32-bit mode
+	{
+		__asm__ volatile (
+			"addl %%esi, %%eax   \n"
+			"adcl %%edi, %%edx   \n"
+			"seto %%cl           \n"
+			: "=A" (c), "=c" (retval)
+			: "a" ((uint32_t)a), "d" ((uint32_t)(a >> 32)),
+			  "S" ((uint32_t)b), "D" ((uint32_t)(b >> 32))
+			: );
+	}
+#else
+#error Strange ptr size
+#endif
+	return retval;
+}
+
+#endif //!_MSC_VER
 #endif //__DEBUG_CHECK_INTEGER_OVERFLOW_USE_X86_ASM
 
 template <typename T> bool overflowchecked<T>::s_bOverflowCheckActive = OVERFLOWCHECK_ON_BY_DEFAULT;
